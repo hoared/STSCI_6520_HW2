@@ -1,0 +1,100 @@
+---
+title: "vignette"
+author: "Derek Hoare"
+date: "5/24/2021"
+output: html_document
+---
+## Homework 2 Vignette
+
+The R package *HoareHW2* implements an iterative ordinary least squares solver, a weighted leveraging regression solver, and an elastic net algorithm.
+
+To download and install the package, use `devtools`:
+
+```{r install_devtool, message=FALSE}
+library(devtools)
+devtools::install_github("hoared/STSCI_6520_HW2")
+```
+
+You can subsequently load the package with the usual R commands:
+
+```{r load, message=FALSE}
+library(HoareHW2)
+```
+
+We now go over how to use the three functions described above.
+
+## 1. solve_ols
+
+```{r}
+alpha = 3
+v = as.vector(c(0,1) %*% t(rep(1,50))) # Construct v
+A = diag(rep(alpha, 100))
+for(i in 1:(100-1)){
+  A[i,i+1] <- A[i+1,i] <- -1
+}
+
+b = A %*% v
+
+# Gauss-Seidel
+HoareHW2::solve_ols(A, b , method = "Gauss", numcores = 1, niter = 1000)
+
+# Sequential Jacobi
+HoareHW2::solve_ols(A, b , method = "Jacobi", numcores = 1, niter = 1000)
+
+# Parallel Jacobi
+HoareHW2::solve_ols(A, b , method = "Jacobi", numcores = 2, niter = 1000)
+```
+
+## 2. algo_leverage
+
+```{r}
+# Univariate Case
+n<- 500
+X = rt(n, 6)
+Y = -X + rnorm(n, mean = 0, sd = 1)
+
+algo_leverage(X, Y, r = 50, method = "uniform")
+algo_leverage(X, Y, r = 50, method = "leverage")
+
+# Multivariate Case
+
+X = cbind(rt(n, 6), rt(n, 6))
+Y = X %*% c(1,1)+ rnorm(n, mean = 0, sd = 1)
+
+algo_leverage(X, Y, r = 50, method = "uniform")
+algo_leverage(X, Y, r = 50, method = "leverage")
+
+```
+
+
+## 3. elnet_coord
+
+```{r}
+beta = c(2,0,-2,0,1,0,-2,0,0,0,0,0,0,0,0,0,0,0,0,0)
+p <- 20 #Number of predictors is fixed
+
+# Covariance Matrix
+Sigma <- diag(rep(1,20))
+Sigma[1,2] <- Sigma[2,1] <- 0.8
+Sigma[5,6] <- Sigma[6,5] <- 0.8
+
+# A sequence of lambdas
+lambdas <- seq(0.01, 3, length.out = 25)
+
+# Set n, alpha, and lambdas
+n <- 20
+alpha <- 0.5
+lambdas <- seq(0.01, 3, length.out = 25)
+
+
+# Generate Data
+X <-MASS::mvrnorm(n, rep(0,20), Sigma, tol = 1e-6, empirical = FALSE, EISPACK = FALSE)
+Y <- X %*% beta + rnorm(n)
+
+beta_hat = elnet_coord(X, Y, lambdas, alpha)
+
+matplot(log(lambdas), t(beta_hat$betas), type = "l", main = paste("Elastic Net, alpha=", alpha, ", n=",n), ylab = "Beta_i")
+
+```
+
+

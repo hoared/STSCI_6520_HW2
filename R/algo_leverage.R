@@ -11,18 +11,21 @@
 #' @export
 #'
 algo_leverage <- function(X, Y, r, method = "uniform"){
+  X <- as.matrix(X)
+  n <- nrow(X)
+  
   if(method=="uniform"){
-    idx <- sample(1:500, size = r, replace = FALSE)
-    beta_unif <- stats::lm(Y[idx]~X[idx]+0)$coefficients
+    idx <- sample(1:n, size = r, replace = FALSE)
+    beta_unif <- stats::lm(Y[idx]~X[idx,]+0)$coefficients
     
     return(beta_unif)
   } else if(method=="leverage"){
     H = X %*% solve(t(X)%*%X) %*% t(X)
     scores = diag(H)/sum(diag(H)) # These are the leverage scores
     
-    idx <- sample(1:500, size = r, replace = TRUE, prob = scores) # Sample
+    idx <- sample(1:n, size = r, replace = TRUE, prob = scores) # Sample
     probs <- scores[idx] # Probabilities
-    beta_blev <- stats::lm(Y[idx]~X[idx]+0, weights = probs)$coefficients
+    beta_blev <- stats::lm(Y[idx]~X[idx,]+0, weights = probs)$coefficients
     
     return(beta_blev)
   } else{
