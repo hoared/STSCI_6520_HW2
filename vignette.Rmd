@@ -2,7 +2,9 @@
 title: "vignette"
 author: "Derek Hoare"
 date: "5/24/2021"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 ## Homework 2 Vignette
 
@@ -24,6 +26,8 @@ library(HoareHW2)
 We now go over how to use the three functions described above.
 
 ## 1. solve_ols
+
+The solve_ols function computes the Ordinary Least Squares solution using two different coordinate descent methods. The Gauss-Seidel method, and the Jacobi Method. The Jacobi Method has a parallel implementation which can be used if the user specifies a number of cores greater than 1. 
 
 ```{r}
 alpha = 3
@@ -47,6 +51,8 @@ HoareHW2::solve_ols(A, b , method = "Jacobi", numcores = 2, niter = 1000)
 
 ## 2. algo_leverage
 
+We can also get least squares estimates using subsampling. The \texttt{algo_leverage} function allows the user to do this for both uniform subsampling and leverage-weighted subsampling. The leverage-weighted subsampling has better statistical properties and is recommended.
+
 ```{r}
 # Univariate Case
 n<- 500
@@ -68,6 +74,8 @@ algo_leverage(X, Y, r = 50, method = "leverage")
 
 
 ## 3. elnet_coord
+
+Finally we implement the elastic net algorithm using coordinate descent. This is a penalized least squares regression function that has both $L1$ and $L2$ penalties. $\alpha$ controls the relative weighting of these penalties. A value of $\alpha = 1$ results in a lasso (L1) penalty, and a value of $\alpha = 0$ results in a ridge regression (L2) penalty. $\lambda$ is an overall weight for the penalty.
 
 ```{r}
 beta = c(2,0,-2,0,1,0,-2,0,0,0,0,0,0,0,0,0,0,0,0,0)
